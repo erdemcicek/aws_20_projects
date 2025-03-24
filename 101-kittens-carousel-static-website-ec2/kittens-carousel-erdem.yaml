@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  keypair:
+    Description: Choose your keypair 
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: erdem_first_keypair
+
+  ParameterName:
+    Description: Choose your imageid
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64
+
+Resources:
+  mySecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allows ssh and http" # Required
+      GroupName: "erdem-sec-grp-cloud-formation"
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+  
+  mywebserver:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ParameterName
+      InstanceType: t2.micro
+      KeyName: !Ref keypair
+      SecurityGroupIds: 
+        - !Ref mySecGrp
+      Tags: 
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName}
+      UserData: "String"
+
+
+Outputs:
